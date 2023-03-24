@@ -1,0 +1,36 @@
+spring:
+  application:
+   name: products
+   
+server:
+  port: 9001
+
+  datasource:
+   url: jdbc:h2:mem:testdb
+   driverClassName: org.h2.Driver
+   username: sa
+   password:
+  jpa:
+   show-sql: true
+   properties:
+    hibernate:
+     dialect: org.hibernate.dialect.H2Dialect  
+  
+management:
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus: 
+      enabled: true
+  endpoints:
+    web: 
+      base-path: /actuator
+      exposure:
+        includes: ["health","metrics","prometheus"]
+
+eureka:
+ client:
+  serviceUrl:
+   defaultZone: http://${registry.host:localhost}:${server.port}/eureka/
+  registerWithEureka: true
+  fetchRegistry: true 

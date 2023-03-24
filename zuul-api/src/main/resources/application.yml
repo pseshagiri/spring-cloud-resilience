@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: zuul-api
+ 
+server:
+  port: 9000
+ 
+  cloud:
+   gateway:
+    default-filter:
+      - name: RequestRateLimiter
+        args:
+          redis-rate-limiter:
+          replenishRate: 10
+          burstCapacity: 20
+          requestedToken: 1
+    routes:
+      - id: product-routes
+        uri: http://localhost:9001/
+        predicates:
+          - Path=/products/**
+        filter:
+          - AddRequestHeader=X-Tenant,seshagiri
+          - AddResponseHeader=X-Genre,abc
+          - name: CircuitBreaker
+            args:
+              name: productService	
+            fallBackUri: forward:/products-fallback 
+          - name: Retry
+            args:
+              retries: 3
+              methods: GET
+              backoff:
+                firstBackoff: 50ms
+                maxBackoff: 500ms
+
+      - id: order-routes
+        uri: http://localhost:9002/
+        predicates:
+           - Path=/orders/**
+        filter:
+          - AddRequestHeader=X-Tenant,seshagiri
+          - AddResponseHeader=X-Genre,abc
+          - name: CircuitBreaker
+            args:
+              name: orderService	
+            fallBackUri: forward:/orders-fallback 
+          - name: Retry
+            args:
+            retries: 3
+            methods: GET
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms         
+            
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        registerHealthIndicator: true
+      orderService:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        registerHealthIndicator: true 
+  timeLimiter:
+    instances:
+      productService:
+        timeOutDuration: 3s
+      orderService:
+        timeOutDuration: 3s    	   

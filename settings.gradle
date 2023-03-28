@@ -1,1 +1,4 @@
-include ''
+include 'eureka-service'
+include 'zuul-api'
+include 'order-service'
+include 'product-service'

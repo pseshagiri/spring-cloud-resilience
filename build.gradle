@@ -1,0 +1,7 @@
+apply plugin: 'base'
+subprojects {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+}
